@@ -10,8 +10,8 @@ LOCAL_IP_ENV?=$(shell ip route get 8.8.8.8 | head -1 |  awk '{print $$7}')
 # Can choose different docker versions see list here - https://hub.docker.com/_/docker/
 DOCKER_VERSION?=rc-dind
 HOST_CHECKOUT_DIR?=$(CURDIR)
-CONTAINER_NAME?=calico/libnetwork-plugin
-CALICO_BUILD?=calico/go-build
+CONTAINER_NAME?=hitomitak/libnetwork-plugin-ppc64le
+CALICO_BUILD?=hitomitak/go-build-ppc64le
 PLUGIN_LOCATION?=$(CURDIR)/dist/libnetwork-plugin
 DOCKER_BINARY_CONTAINER?=docker-binary-container
 
@@ -62,7 +62,7 @@ static-checks: vendor
 	docker run --rm \
 		-e LOCAL_USER_ID=$(LOCAL_USER_ID) \
 		-v $(CURDIR):/go/src/github.com/projectcalico/libnetwork-plugin \
-		calico/go-build sh -c '\
+		hitomitak/go-build-ppc64le sh -c '\
 			cd  /go/src/github.com/projectcalico/libnetwork-plugin && \
 			gometalinter --deadline=30s --disable-all --enable=goimports --enable=vet --enable=errcheck --enable=varcheck --enable=unused --enable=dupl $$(glide nv)'
 
