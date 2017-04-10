@@ -8,16 +8,15 @@ SRC_FILES=$(shell find . -type f -name '*.go')
 LOCAL_IP_ENV?=$(shell ip route get 8.8.8.8 | head -1 |  awk '{print $$7}')
 
 # Can choose different docker versions see list here - https://hub.docker.com/_/docker/
-DOCKER_VERSION?=rc-dind
+DOCKER_VERSION?=dind
 HOST_CHECKOUT_DIR?=$(CURDIR)
 CONTAINER_NAME?=hitomitak/libnetwork-plugin-ppc64le
 CALICO_BUILD?=hitomitak/go-build-ppc64le
 PLUGIN_LOCATION?=$(CURDIR)/dist/libnetwork-plugin
 DOCKER_BINARY_CONTAINER?=docker-binary-container
 
-# To run with non-native docker (e.g. on Windows or OSX) you might need to overide these variables
+# To run with non-native docker (e.g. on Windows or OSX) you might need to overide this variable
 LOCAL_USER_ID?=$(shell id -u $$USER)
-LOCAL_GROUP_ID?=$(shell getent group docker | cut -d: -f3)
 
 default: all
 all: test
@@ -67,7 +66,7 @@ static-checks: vendor
 			gometalinter --deadline=30s --disable-all --enable=goimports --enable=vet --enable=errcheck --enable=varcheck --enable=unused --enable=dupl $$(glide nv)'
 
 run-etcd:
-	@-docker rm -f calico-etcd calico-etcd-ssl
+	@-docker rm -f calico-etcd
 	docker run --detach \
 	--net=host \
 	--name calico-etcd quay.io/coreos/etcd \
@@ -137,11 +136,9 @@ test-containerized: dist/libnetwork-plugin
 	docker run -ti --rm --net=host \
 		-v $(CURDIR):/go/src/github.com/projectcalico/libnetwork-plugin \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v $(CURDIR)/.go-pkg-cache:/go/pkg/:rw \
 		-v $(CURDIR)/docker:/usr/bin/docker	\
 		-e PLUGIN_LOCATION=$(CURDIR)/dist/libnetwork-plugin \
-		-e EXTRA_GROUP_ID=$(LOCAL_GROUP_ID) \
-		-e LOCAL_USER_ID=$(LOCAL_USER_ID) \
+		-e LOCAL_USER_ID=0 \
 		calico/go-build sh -c '\
 			cd  /go/src/github.com/projectcalico/libnetwork-plugin && \
 			make test'
